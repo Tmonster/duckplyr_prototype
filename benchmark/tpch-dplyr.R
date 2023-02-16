@@ -8,6 +8,13 @@ tables <- c("lineitem", "partsupp", "part", "supplier", "nation", "orders", "cus
 env <- environment()
 
 
+devtools::install_local('/Users/tomebergen/duckdb/tools/rpkg', force=TRUE)
+pak::pak("duckdblabs/duckplyr")
+pkgload::load_all()
+library(duckplyr)
+
+
+
 if (pkg == "arrow") {
   library("dplyr")
   lapply(tables, function(t) {
