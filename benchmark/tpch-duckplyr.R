@@ -8,7 +8,8 @@ tables <- c("lineitem", "partsupp", "part", "supplier", "nation", "orders", "cus
 env <- environment()
 
 
-devtools::install_local('/Users/tomebergen/duckdb/tools/rpkg', force=TRUE)
+# devtools::install_local('/Users/tomebergen/duckdb/tools/rpkg', force=TRUE)
+library(duckdb)
 pak::pak("duckdblabs/duckplyr")
 pkgload::load_all()
 library(duckplyr)
@@ -32,22 +33,22 @@ lapply(tables, function(t) {
 
 test_dplyr_q[[1]] <- function() {
   lineitem |>
-    select(l_shipdate, l_returnflag, l_linestatus, l_quantity, 
+    duckplyr_select(l_shipdate, l_returnflag, l_linestatus, l_quantity, 
         l_extendedprice, l_discount, l_tax) |>
-    filter(l_shipdate <= as.Date("1998-09-02")) |>
-    select(l_returnflag, l_linestatus, l_quantity, l_extendedprice, l_discount, l_tax) |>
-    group_by(l_returnflag, l_linestatus) |>
-    summarise(
-      sum_qty = sum(l_quantity),
-      sum_base_price = sum(l_extendedprice),
-      sum_disc_price = sum(l_extendedprice * (1 - l_discount)),
-      sum_charge = sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)),
-      avg_qty = mean(l_quantity),
-      avg_price = mean(l_extendedprice),
-      avg_disc = mean(l_discount),
+    duckplyr_filter(l_shipdate <= as.Date("1998-09-02")) |>
+    duckplyr_select(l_returnflag, l_linestatus, l_quantity, l_extendedprice, l_discount, l_tax) |>
+    duckplyr_group_by(l_returnflag, l_linestatus) |>
+    duckplyr_summarise(
+      sum_qty = duckplyr_sum(l_quantity),
+      sum_base_price = duckplyr_sum(l_extendedprice),
+      sum_disc_price = duckplyr_sum(l_extendedprice * (1 - l_discount)),
+      sum_charge = duckplyr_sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)),
+      avg_qty = duckplyr_mean(l_quantity),
+      avg_price = duckplyr_mean(l_extendedprice),
+      avg_disc = duckplyr_mean(l_discount),
       count_order = n()
     ) |>
-    arrange(l_returnflag, l_linestatus)
+    duckplyr_arrange(l_returnflag, l_linestatus)
 }
 
 test_dplyr_q[[2]] <- function() {
@@ -420,7 +421,7 @@ test_dplyr_q[[10]] <- function() {
 res <- list()
 
 for (q in 1:length(test_dplyr_q)) {
-    f <- test_dplyr_q[[q]]
+    f <- test_dplyr_q[[1]]
     cold <- as.data.frame(f())
     time <- system.time(as.data.frame(f()))[[3]]
     print(q)
